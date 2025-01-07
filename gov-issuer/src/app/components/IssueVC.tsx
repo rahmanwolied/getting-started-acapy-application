@@ -1,12 +1,20 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { issueVC } from '../server/issue-vc';
 
 export default function IssueVC() {
+    const [mounted, setMounted] = useState(false);
     const handleSubmit = async (formData: FormData) => {
         const result = await issueVC(formData);
         // Handle the result here if needed
     };
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
 
     return (
         <div className="flex flex-col gap-4 p-4 rounded-md border border-white/20 justify-center items-center">
@@ -14,8 +22,7 @@ export default function IssueVC() {
             <form className="flex flex-col gap-4" action={handleSubmit}>
                 <input type="text" name="name" placeholder="Name" />
                 <input type="text" name="nid" placeholder="NID" />
-                <input type="text" name="trade_license" placeholder="Trade License" />
-                <input type="text" name="expires" placeholder="Expires" />
+                <input type="text" name="phone_number" placeholder="Phone Number" />
                 <input
                     type="hidden"
                     name="connection_id"
