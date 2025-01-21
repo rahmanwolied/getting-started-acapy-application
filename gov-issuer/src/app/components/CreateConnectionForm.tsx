@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import QRCode from 'qrcode';
 import { ACAPY_API_URL, BEARER_TOKEN } from '../config';
+import axios from 'axios';
 
 const headers = {
     'Content-Type': 'application/json',
@@ -27,14 +28,13 @@ export default function CreateConnectionForm() {
     const handleConnection = async () => {
         try {
             // 1. Create invitation
-            const response = await fetch(`${ACAPY_API_URL}/out-of-band/create-invitation`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(body),
-            });
+            const response = await axios.post(
+                `${ACAPY_API_URL}/out-of-band/create-invitation`,
+                body
+            );
 
-            if (response.ok) {
-                const data = await response.json();
+            if (response.status === 200) {
+                const data = response.data;
                 const inviteURL = data.invitation_url;
                 setInvitationId(data.invi_msg_id); // Store the invitation message ID
 
@@ -45,7 +45,7 @@ export default function CreateConnectionForm() {
                 // Start polling for connection
                 pollForConnection(data.invi_msg_id);
             } else {
-                console.error('API service unavailable');
+                console.error('API service unavailable', response);
                 setConnectionStatus('Error: API service unavailable');
             }
         } catch (err) {
