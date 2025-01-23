@@ -67,7 +67,6 @@ export default function CreateConnectionForm() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log(data);
                     if (data.results && data.results.length > 0) {
                         const connection = data.results[0];
                         setConnectionId(connection.connection_id);

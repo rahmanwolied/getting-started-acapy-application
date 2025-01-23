@@ -1,32 +1,27 @@
 'use server';
 
+import axios from 'axios';
 import { ACAPY_API_URL, BEARER_TOKEN } from '../../config';
 
-export async function createCredentialDefinition(schemaId: string) {
+export async function createCredentialDefinition(schemaId: string, tag: string) {
     try {
-        console.log('schemaId', schemaId);
-        const response = await fetch(`${ACAPY_API_URL}/credential-definitions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${BEARER_TOKEN}`,
-            },
-            body: JSON.stringify({
+        const exists = await axios.get(`${ACAPY_API_URL}/credential-definitions/created`, {
+            params: {
                 schema_id: schemaId,
-                tag: 'Seller Identity',
-                support_revocation: true,
-                revocation_registry_size: 1000,
-            }),
+            },
         });
 
-        if (!response.ok) {
-            throw new Error(`Failed to create credential definition: ${response.statusText}`);
+        if (exists.data && exists.data.credential_definition_ids.length > 0) {
+            return exists.data.credential_definition_ids[0];
         }
 
-        const data = await response.json();
-        console.log('data', data);
+        const response = await axios.post(`${ACAPY_API_URL}/credential-definitions`, {
+            schema_id: schemaId,
+            tag: tag,
+            support_revocation: false,
+        });
 
-        return data;
+        return response.data.sent.credential_definition_id;
     } catch (error) {
         console.error('Error creating credential definition:', error);
         throw error;

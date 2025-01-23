@@ -3,20 +3,48 @@
 import { createSchema, type SchemaAttributes } from './schema';
 import { createCredentialDefinition } from './credential-definition';
 
-export async function createSchemaAndCredDef(schemaData: SchemaAttributes) {
-    try {
-        // Create and register schema
-        const schema = await createSchema(schemaData);
+const schemas: SchemaAttributes[] = [
+    {
+        name: 'NID',
+        attributes: ['name', 'age', 'phone'],
+        version: 1,
+        tag: 'NID',
+    },
+    {
+        name: 'Seller License',
+        attributes: ['company_name', 'company_address'],
+        version: 1,
+        tag: 'Seller License',
+    },
+    {
+        name: 'Platform VC',
+        attributes: ['user_id', 'user_name'],
+        version: 1,
+        tag: 'Platform VC',
+    },
+];
 
-        // Create and register credential definition
-        const credentialDefinition = await createCredentialDefinition(schema.sent.schema_id);
-        console.log('creden', credentialDefinition);
+export async function createSchemaAndCredDef() {
+    try {
+        const schemaIds: string[] = [];
+        const credentialDefinitionIds: string[] = [];
+        for (const _schema of schemas) {
+            const schemaId = await createSchema(_schema);
+            schemaIds.push(schemaId);
+
+            const credentialDefinition = await createCredentialDefinition(schemaId, _schema.tag!);
+            credentialDefinitionIds.push(credentialDefinition);
+        }
+
         return {
-            schemaId: schema.sent.schema_id,
-            credentialDefinitionId: credentialDefinition.id,
+            schemaIds,
+            credentialDefinitionIds,
         };
     } catch (error) {
         console.error('Error creating schema and credential definition:', error);
-        throw error;
+        return {
+            schemaIds: [],
+            credentialDefinitionIds: [],
+        };
     }
 }

@@ -1,11 +1,13 @@
 'use server';
 
+import axios from 'axios';
 import { ACAPY_API_URL, BEARER_TOKEN } from '../../config';
 
 export interface SchemaAttributes {
     name: string;
     attributes: string[];
     version: number;
+    tag?: string;
 }
 
 export async function createSchema(schemaData: SchemaAttributes) {
@@ -15,21 +17,19 @@ export async function createSchema(schemaData: SchemaAttributes) {
             schema_name: schemaData.name,
             schema_version: '1.0',
         };
-        const response = await fetch(`${ACAPY_API_URL}/schemas`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${BEARER_TOKEN}`,
+        const exists = await axios.get(`${ACAPY_API_URL}/schemas/created`, {
+            params: {
+                schema_name: schemaData.name,
             },
-            body: JSON.stringify(body),
         });
 
-        if (!response.ok) {
-            throw new Error(`Failed to create schema: ${response.statusText}`);
+        if (exists.data && exists.data.schema_ids.length > 0) {
+            return exists.data.schema_ids[0];
         }
-        const data = await response.json();
-        console.log('data', data);
-        return data;
+
+        const response = await axios.post(`${ACAPY_API_URL}/schemas`, body);
+
+        return response.data.sent.schema_id;
     } catch (error) {
         console.error('Error creating schema:', error);
         throw error;
